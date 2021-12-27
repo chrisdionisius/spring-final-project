@@ -9,4 +9,6 @@ public interface CategoryService {
     CategoryOutput getOne(Integer id);
     List<CategoryOutput> getAll();
     void addOne(CategoryInput categoryInput);
+    void delete(Integer id);
+    CategoryOutput update(Integer id,CategoryInput categoryInput);
 }

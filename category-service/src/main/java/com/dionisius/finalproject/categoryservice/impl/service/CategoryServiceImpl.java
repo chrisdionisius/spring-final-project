@@ -51,4 +51,20 @@ public class CategoryServiceImpl implements CategoryService {
                 .build();
         categoryRepository.save(category);
     }
+
+    @Override
+    public void delete(Integer id) {
+        categoryRepository.deleteById(id);
+    }
+
+    @Override
+    public CategoryOutput update(Integer id, CategoryInput categoryInput) {
+        Optional<Category> category = categoryRepository.findById(id);
+        if (category.isEmpty()){
+            return null;
+        }
+        return null;
+    }
+
+
 }
