@@ -21,9 +21,11 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public CategoryOutput getOne(Integer id) {
         Optional<Category> category = categoryRepository.findById(id);
+
         if (category.isEmpty()){
-            return null;
+            throw new RuntimeException("Not Found");
         }
+
         return CategoryOutput.builder()
                 .id(category.get().getId())
                 .name(category.get().getName())
@@ -49,26 +51,29 @@ public class CategoryServiceImpl implements CategoryService {
         Category category = Category.builder()
                 .name(categoryInput.getName())
                 .build();
-        categoryRepository.save(category);
+        try {
+            categoryRepository.save(category);
+        }catch (Exception e){
+            throw new RuntimeException("Duplicated");
+        }
     }
 
     @Override
     public void delete(Integer id) {
         Optional<Category> category = categoryRepository.findById(id);
         if (category.isEmpty()){
-            return;
+            throw new RuntimeException("Not Found");
         }
         categoryRepository.deleteById(id);
     }
 
     @Override
-    public CategoryOutput update(Integer id, CategoryInput categoryInput) {
-        Optional<Category> category = categoryRepository.findById(id);
-        if (category.isEmpty()){
-            return null;
+    public Category update(Integer id, CategoryInput categoryInput) {
+        Optional<Category> categoryUpdated = categoryRepository.findById(id);
+        if (categoryUpdated.isEmpty()){
+            throw new RuntimeException("Not Found");
         }
-        return null;
+        categoryUpdated.get().setName(categoryInput.getName());
+        return  categoryRepository.save(categoryUpdated.get());
     }
-
-
 }

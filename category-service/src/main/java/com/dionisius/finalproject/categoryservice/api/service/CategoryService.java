@@ -2,6 +2,7 @@ package com.dionisius.finalproject.categoryservice.api.service;
 
 import com.dionisius.finalproject.categoryservice.api.dto.input.CategoryInput;
 import com.dionisius.finalproject.categoryservice.api.dto.output.CategoryOutput;
+import com.dionisius.finalproject.categoryservice.data.model.Category;
 
 import java.util.List;
 
@@ -10,5 +11,5 @@ public interface CategoryService {
     List<CategoryOutput> getAll();
     void addOne(CategoryInput categoryInput);
     void delete(Integer id);
-    CategoryOutput update(Integer id,CategoryInput categoryInput);
+    Category update(Integer id, CategoryInput categoryInput);
 }
