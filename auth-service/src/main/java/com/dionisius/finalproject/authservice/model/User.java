@@ -1,13 +1,19 @@
 package com.dionisius.finalproject.authservice.model;
 
-import lombok.Data;
-import org.springframework.data.annotation.Id;
+import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
 import java.util.Collection;
+import java.util.Date;
 
+@Getter
+@Setter
+@ToString
+@RequiredArgsConstructor
 @Data
 @Entity
 @Table(name="users")
@@ -17,11 +23,17 @@ public class User implements UserDetails {
     private Long id;
     private String username;
     private String password;
-    private String role;
+    private String role="user";
     private String email;
     private String photo;
-    @Column(columnDefinition = "boolean default false")
-    private boolean is_registered=false;
+    @Column(columnDefinition = "boolean default true")
+    private boolean is_registered=true;
+    @Column
+    @UpdateTimestamp
+    private Date updatedAt;
+    @Column
+    @CreationTimestamp
+    private Date createdAt;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

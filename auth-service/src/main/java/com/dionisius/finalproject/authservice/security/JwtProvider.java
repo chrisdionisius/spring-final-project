@@ -20,7 +20,6 @@ import java.util.Map;
 public class JwtProvider {
     private final Key key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
 
-
     private Long expiration=1000L * 60 * 60;//ms*s*m = 1 hour
 
     public String generateToken(Authentication authentication){
@@ -40,7 +39,6 @@ public class JwtProvider {
                 .setExpiration(expiryDate)
                 .signWith(key)
                 .compact();
-
     }
 
     public boolean validateToken(String token){

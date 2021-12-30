@@ -1,6 +1,7 @@
 package com.dionisius.finalproject.authservice.service.impl;
 
 import com.dionisius.finalproject.authservice.model.User;
+import com.dionisius.finalproject.authservice.payload.UserInfo;
 import com.dionisius.finalproject.authservice.repository.UserRepository;
 import com.dionisius.finalproject.authservice.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -22,4 +23,19 @@ public class UserServiceImpl implements UserService {
 
         return user;
     }
+
+    @Override
+    public UserInfo getUserInfo(String username) throws UsernameNotFoundException {
+        User user = userRepository.getDistinctTopByUsername(username);
+        if (user==null)
+            throw new UsernameNotFoundException("Username Not Found");
+        UserInfo userInfo =  new UserInfo();
+        userInfo.setUsername(username);
+        userInfo.setEmail(user.getEmail());
+        userInfo.setPhoto(user.getPhoto());
+        userInfo.setRole(user.getRole());
+        userInfo.set_registered(user.is_registered());
+        return userInfo;
+    }
+
 }
