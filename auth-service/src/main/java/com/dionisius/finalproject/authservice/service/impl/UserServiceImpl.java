@@ -30,6 +30,7 @@ public class UserServiceImpl implements UserService {
         if (user==null)
             throw new UsernameNotFoundException("Username Not Found");
         UserInfo userInfo =  new UserInfo();
+        userInfo.setId(user.getId());
         userInfo.setUsername(username);
         userInfo.setEmail(user.getEmail());
         userInfo.setPhoto(user.getPhoto());

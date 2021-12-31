@@ -5,6 +5,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 @Data
 public class UserInfo {
+    public Long id;
     public String username;
     public String email;
     public String photo;

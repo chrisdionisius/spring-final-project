@@ -45,7 +45,7 @@ public class CategoryController {
         }
         try {
             categoryService.addOne(categoryInput);
-            return ResponseEntity.ok(null);
+            return ResponseEntity.ok(categoryInput);
         }catch (Exception e){
             if(e.getMessage().equalsIgnoreCase("Duplicated")){
                 return new ResponseEntity(HttpStatus.CONFLICT);
@@ -66,7 +66,6 @@ public class CategoryController {
             }
             return ResponseEntity.internalServerError().build();
         }
-
     }
 
     @PatchMapping("/{id}")
