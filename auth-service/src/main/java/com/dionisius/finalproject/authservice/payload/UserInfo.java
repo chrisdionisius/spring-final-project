@@ -1,7 +1,6 @@
 package com.dionisius.finalproject.authservice.payload;
 
 import lombok.Data;
-import org.springframework.security.core.userdetails.UserDetails;
 
 @Data
 public class UserInfo {
