@@ -9,7 +9,7 @@ import java.util.List;
 public interface PostService {
     PostOutput getOne(Integer id);
     List<PostOutput> getAll();
-    List<PostOutput> getByCategory();
+    List<PostOutput> getByCategory(Integer category_id);
     void addOne(PostInput postInput);
     void delete(Integer id);
     Post update(Integer id, PostInput postInput);

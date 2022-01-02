@@ -73,7 +73,11 @@ public class CategoryServiceImpl implements CategoryService {
         if (categoryUpdated.isEmpty()){
             throw new RuntimeException("Not Found");
         }
-        categoryUpdated.get().setName(categoryInput.getName());
-        return  categoryRepository.save(categoryUpdated.get());
+        try {
+            categoryUpdated.get().setName(categoryInput.getName());
+            return  categoryRepository.save(categoryUpdated.get());
+        }catch (Exception e){
+            throw new RuntimeException("Duplicated");
+        }
     }
 }

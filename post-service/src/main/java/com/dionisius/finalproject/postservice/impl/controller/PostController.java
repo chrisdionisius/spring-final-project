@@ -1,29 +1,28 @@
-package com.dionisius.finalproject.categoryservice.impl.controller;
+package com.dionisius.finalproject.postservice.impl.controller;
 
-import com.dionisius.finalproject.categoryservice.api.dto.input.CategoryInput;
-import com.dionisius.finalproject.categoryservice.api.dto.output.CategoryOutput;
-import com.dionisius.finalproject.categoryservice.api.service.CategoryService;
+import com.dionisius.finalproject.postservice.api.dto.PostInput;
+import com.dionisius.finalproject.postservice.api.dto.PostOutput;
+import com.dionisius.finalproject.postservice.api.service.PostService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
 import java.util.List;
 
 @RestController
-@RequestMapping("/category")
-public class CategoryController {
+@RequestMapping("/post")
+public class PostController {
     @Autowired
-    @Qualifier("categoryServiceImpl")
-    private CategoryService categoryService;
+    @Qualifier("postServiceImpl")
+    private PostService postService;
 
     @GetMapping("/{id}")
-    public ResponseEntity<CategoryOutput> getOne(@PathVariable Integer id) {
+    public ResponseEntity<PostOutput> getOne(@PathVariable Integer id) {
         try {
-            CategoryOutput categoryOutput = categoryService.getOne(id);
-            return ResponseEntity.ok(categoryOutput);
+            PostOutput PostOutput = postService.getOne(id);
+            return ResponseEntity.ok(PostOutput);
         }catch (Exception e){
             if(e.getMessage().equalsIgnoreCase("Not Found")){
                 return ResponseEntity.notFound().build();
@@ -33,19 +32,19 @@ public class CategoryController {
     }
 
     @GetMapping
-    public ResponseEntity<List<CategoryOutput>> getAll(){
-        List<CategoryOutput> categoryOutputs = categoryService.getAll();
-        return ResponseEntity.ok(categoryOutputs);
+    public ResponseEntity<List<PostOutput>> getAll(){
+        List<PostOutput> PostOutputs = postService.getAll();
+        return ResponseEntity.ok(PostOutputs);
     }
 
     @PostMapping
-    public ResponseEntity addOne(@RequestBody CategoryInput categoryInput){
-        if (categoryInput.getName() == null){
+    public ResponseEntity addOne(@RequestBody PostInput PostInput){
+        if (PostInput.getTitle() == null){
             return ResponseEntity.noContent().build();
         }
         try {
-            categoryService.addOne(categoryInput);
-            return ResponseEntity.ok(categoryInput);
+            postService.addOne(PostInput);
+            return ResponseEntity.ok(PostInput);
         }catch (Exception e){
             if(e.getMessage().equalsIgnoreCase("Duplicated")){
                 return new ResponseEntity(HttpStatus.CONFLICT);
@@ -58,7 +57,7 @@ public class CategoryController {
     @DeleteMapping("/{id}")
     public ResponseEntity delete(@PathVariable Integer id){
         try {
-            categoryService.delete(id);
+            postService.delete(id);
             return ResponseEntity.noContent().build();
         }catch (Exception e){
             if(e.getMessage().equalsIgnoreCase("Not Found")){
@@ -69,17 +68,15 @@ public class CategoryController {
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity update(@PathVariable Integer id,@RequestBody CategoryInput categoryInput){
+    public ResponseEntity update(@PathVariable Integer id,@RequestBody PostInput PostInput){
         try{
-            if (categoryInput.getName() == null){
+            if (PostInput.getTitle() == null){
                 return ResponseEntity.noContent().build();
             }
-            return ResponseEntity.ok(categoryService.update(id, categoryInput));
+            return ResponseEntity.ok(postService.update(id, PostInput));
         }catch (Exception e){
             if(e.getMessage().equalsIgnoreCase("Not Found")){
                 return ResponseEntity.notFound().build();
-            }else if (e.getMessage().equalsIgnoreCase("Duplicated")){
-                return new ResponseEntity(HttpStatus.CONFLICT);
             }
             return ResponseEntity.internalServerError().build();
         }
