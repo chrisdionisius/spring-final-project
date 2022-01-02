@@ -6,9 +6,12 @@ import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
+import javax.crypto.spec.SecretKeySpec;
+import java.nio.charset.Charset;
 import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
@@ -18,7 +21,10 @@ import java.util.Map;
 @Component
 @RequiredArgsConstructor
 public class JwtProvider {
-    private final Key key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+//    private final Key key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+    private String jwtSecret = "iniadalahasecretkeyyangdigunakanuntukgenerate";
+    byte[] keyData = jwtSecret.getBytes(Charset.forName("UTF-8"));
+    private final Key key = new SecretKeySpec(keyData, SignatureAlgorithm.HS256.getJcaName());
 
     private Long expiration=1000L * 60 * 60;//ms*s*m = 1 hour
 

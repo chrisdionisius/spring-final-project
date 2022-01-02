@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -27,7 +28,7 @@ public class JwtAuthenticationFilter implements GatewayFilter {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         ServerHttpRequest request = (ServerHttpRequest) exchange.getRequest();
-        final List<String> apiEndpoints = List.of("/register","/login");
+        final List<String> apiEndpoints = List.of("/register","/token");
 
         Predicate<ServerHttpRequest> isApiSecured = r -> apiEndpoints.stream()
                 .noneMatch(uri->r.getURI().getPath().contains(uri));
@@ -37,7 +38,10 @@ public class JwtAuthenticationFilter implements GatewayFilter {
                 response.setStatusCode(HttpStatus.UNAUTHORIZED);
                 return response.setComplete();
             }
-            final String token = request.getHeaders().getOrEmpty("Authorization").get(0);
+
+//            final String token = request.getHeaders().getOrEmpty("Authorization").toString().substring(7);
+            final String token = getJWTFromRequest(request);
+
             try{
                 jwtUtil.validateToken(token);
             }catch (JwtTokenMalformedException | JwtTokenMissingException e){
@@ -49,5 +53,12 @@ public class JwtAuthenticationFilter implements GatewayFilter {
             exchange.getRequest().mutate().header("id",String.valueOf(claims.get("id"))).build();
         }
         return chain.filter(exchange);
+    }
+    private String getJWTFromRequest(ServerHttpRequest  request){
+        String bearerToken  = request.getHeaders().getOrEmpty("Authorization").get(0);
+        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")){
+            return bearerToken.substring(7);
+        }
+        return null;
     }
 }
