@@ -8,7 +8,7 @@ import com.dionisius.finalproject.postservice.data.model.Post;
 import java.util.List;
 
 public interface CommentService {
-    CommentOutput getOneComment(Integer id);
+    CommentOutput getOneComment(Integer id,Integer post_id);
     List<CommentOutput> getAllComment();
     List<CommentOutput> getCommentByPost(Integer post_id);
     void addOneComment(CommentInput commentInput);

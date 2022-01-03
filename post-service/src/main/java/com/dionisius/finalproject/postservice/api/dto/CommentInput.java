@@ -8,4 +8,6 @@ import lombok.*;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class CommentInput {
     private String content;
+    private Long user_id;
+    private Integer post_id;
 }

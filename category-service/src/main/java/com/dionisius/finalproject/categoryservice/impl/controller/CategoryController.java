@@ -1,5 +1,6 @@
 package com.dionisius.finalproject.categoryservice.impl.controller;
 
+import com.dionisius.finalproject.categoryservice.api.dto.BaseResponse;
 import com.dionisius.finalproject.categoryservice.api.dto.input.CategoryInput;
 import com.dionisius.finalproject.categoryservice.api.dto.output.CategoryOutput;
 import com.dionisius.finalproject.categoryservice.api.service.CategoryService;
@@ -20,68 +21,85 @@ public class CategoryController {
     private CategoryService categoryService;
 
     @GetMapping("/{id}")
-    public ResponseEntity<CategoryOutput> getOne(@PathVariable Integer id) {
+    public ResponseEntity<BaseResponse<CategoryOutput>> getOne(@PathVariable Integer id) {
         try {
             CategoryOutput categoryOutput = categoryService.getOne(id);
-            return ResponseEntity.ok(categoryOutput);
+            return ResponseEntity.ok(new BaseResponse<>(categoryOutput));
         }catch (Exception e){
             if(e.getMessage().equalsIgnoreCase("Not Found")){
-                return ResponseEntity.notFound().build();
+                return new ResponseEntity(new BaseResponse(Boolean.FALSE,
+                        "No post found"), HttpStatus.NOT_FOUND);
             }
-            return ResponseEntity.internalServerError().build();
+            return new ResponseEntity(new BaseResponse(Boolean.FALSE,
+                    "Internal Server Error"), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @GetMapping
-    public ResponseEntity<List<CategoryOutput>> getAll(){
-        List<CategoryOutput> categoryOutputs = categoryService.getAll();
-        return ResponseEntity.ok(categoryOutputs);
+    public ResponseEntity<BaseResponse<List<CategoryOutput>>> getAll(){
+        try {
+            List<CategoryOutput> categoryOutputs = categoryService.getAll();
+            return ResponseEntity.ok(new BaseResponse<>(categoryOutputs));
+        }catch (Exception e){
+            return new ResponseEntity(new BaseResponse(Boolean.FALSE,
+                    "Internal Server Error"), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @PostMapping
-    public ResponseEntity addOne(@RequestBody CategoryInput categoryInput){
+    public ResponseEntity<BaseResponse<CategoryInput>> addOne(@RequestBody CategoryInput categoryInput){
         if (categoryInput.getName() == null){
-            return ResponseEntity.noContent().build();
+            return new ResponseEntity(new BaseResponse(Boolean.FALSE,
+                    "Bad Request"), HttpStatus.BAD_REQUEST);
         }
         try {
             categoryService.addOne(categoryInput);
-            return ResponseEntity.ok(categoryInput);
+            return ResponseEntity.ok(new BaseResponse<>(categoryInput));
         }catch (Exception e){
             if(e.getMessage().equalsIgnoreCase("Duplicated")){
-                return new ResponseEntity(HttpStatus.CONFLICT);
+                return new ResponseEntity(new BaseResponse(Boolean.FALSE,
+                        "Duplicated"), HttpStatus.CONFLICT);
             }
-            return ResponseEntity.internalServerError().build();
+            return new ResponseEntity(new BaseResponse(Boolean.FALSE,
+                    "Internal Server Error"), HttpStatus.INTERNAL_SERVER_ERROR);
         }
-
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity delete(@PathVariable Integer id){
+    public ResponseEntity<BaseResponse> delete(@PathVariable Integer id){
         try {
             categoryService.delete(id);
-            return ResponseEntity.noContent().build();
+            return new ResponseEntity(new BaseResponse(Boolean.TRUE,
+                    "Success deleting item"), HttpStatus.OK);
         }catch (Exception e){
             if(e.getMessage().equalsIgnoreCase("Not Found")){
-                return ResponseEntity.notFound().build();
+                return new ResponseEntity(new BaseResponse(Boolean.FALSE,
+                        "No post found"), HttpStatus.NOT_FOUND);
             }
-            return ResponseEntity.internalServerError().build();
+            return new ResponseEntity(new BaseResponse(Boolean.FALSE,
+                    "Internal Server Error"), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity update(@PathVariable Integer id,@RequestBody CategoryInput categoryInput){
+    public ResponseEntity<BaseResponse<CategoryInput>> update(@PathVariable Integer id,@RequestBody CategoryInput categoryInput){
         try{
             if (categoryInput.getName() == null){
-                return ResponseEntity.noContent().build();
+                return new ResponseEntity(new BaseResponse(Boolean.FALSE,
+                        "Bad Request"), HttpStatus.BAD_REQUEST);
             }
-            return ResponseEntity.ok(categoryService.update(id, categoryInput));
+            categoryService.update(id, categoryInput);
+            return ResponseEntity.ok(new BaseResponse<>(categoryInput));
         }catch (Exception e){
             if(e.getMessage().equalsIgnoreCase("Not Found")){
-                return ResponseEntity.notFound().build();
+                return new ResponseEntity(new BaseResponse(Boolean.FALSE,
+                        "No post found"), HttpStatus.NOT_FOUND);
             }else if (e.getMessage().equalsIgnoreCase("Duplicated")){
-                return new ResponseEntity(HttpStatus.CONFLICT);
+                return new ResponseEntity(new BaseResponse(Boolean.FALSE,
+                        "Duplicated row"), HttpStatus.CONFLICT);
             }
-            return ResponseEntity.internalServerError().build();
+            return new ResponseEntity(new BaseResponse(Boolean.FALSE,
+                    "Internal Server Error"), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }

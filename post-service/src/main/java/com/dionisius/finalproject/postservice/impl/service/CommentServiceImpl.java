@@ -2,12 +2,9 @@ package com.dionisius.finalproject.postservice.impl.service;
 
 import com.dionisius.finalproject.postservice.api.dto.CommentInput;
 import com.dionisius.finalproject.postservice.api.dto.CommentOutput;
-import com.dionisius.finalproject.postservice.api.dto.PostOutput;
 import com.dionisius.finalproject.postservice.api.service.CommentService;
 import com.dionisius.finalproject.postservice.data.model.Comment;
-import com.dionisius.finalproject.postservice.data.model.Post;
 import com.dionisius.finalproject.postservice.impl.repository.CommentRepository;
-import com.dionisius.finalproject.postservice.impl.repository.PostRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -22,10 +19,9 @@ public class CommentServiceImpl implements CommentService {
     private CommentRepository commentRepository;
 
     @Override
-    public CommentOutput getOneComment(Integer id) {
+    public CommentOutput getOneComment(Integer id, Integer post_id) {
         Optional<Comment> comment = commentRepository.findById(id);
-
-        if (comment.isEmpty()){
+        if (comment.isEmpty()||comment.get().getPost_id()!=post_id){
             throw new RuntimeException("Not Found");
         }
         return CommentOutput.builder()
@@ -61,15 +57,17 @@ public class CommentServiceImpl implements CommentService {
         Iterable<Comment> comments = commentRepository.findAll();
         List<CommentOutput> commentOutputs = new ArrayList<>();
         for (Comment comment : comments){
-            CommentOutput commentOutput = CommentOutput.builder()
-                    .id(comment.getId())
-                    .user_id(comment.getUser_id())
-                    .post_id(comment.getPost_id())
-                    .content(comment.getContent())
-                    .createdAt(comment.getCreatedAt())
-                    .createdAt(comment.getUpdatedAt())
-                    .build();
-            commentOutputs.add(commentOutput);
+            if (comment.getPost_id() == post_id){
+                CommentOutput commentOutput = CommentOutput.builder()
+                        .id(comment.getId())
+                        .user_id(comment.getUser_id())
+                        .post_id(comment.getPost_id())
+                        .content(comment.getContent())
+                        .createdAt(comment.getCreatedAt())
+                        .createdAt(comment.getUpdatedAt())
+                        .build();
+                commentOutputs.add(commentOutput);
+            }
         }
         return commentOutputs;
     }
@@ -77,6 +75,8 @@ public class CommentServiceImpl implements CommentService {
     @Override
     public void addOneComment(CommentInput commentInput) {
         Comment comment = Comment.builder()
+                .post_id(commentInput.getPost_id())
+                .user_id(commentInput.getUser_id())
                 .content(commentInput.getContent())
                 .build();
         try {

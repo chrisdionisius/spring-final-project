@@ -1,9 +1,6 @@
 package com.dionisius.finalproject.postservice.impl.controller;
 
-import com.dionisius.finalproject.postservice.api.dto.CommentInput;
-import com.dionisius.finalproject.postservice.api.dto.CommentOutput;
-import com.dionisius.finalproject.postservice.api.dto.PostInput;
-import com.dionisius.finalproject.postservice.api.dto.PostOutput;
+import com.dionisius.finalproject.postservice.api.dto.*;
 import com.dionisius.finalproject.postservice.api.service.CommentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -14,73 +11,103 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/comment")
+@RequestMapping("/post/{id_post}/comment")
 public class CommentController {
     @Autowired
     @Qualifier("commentServiceImpl")
     private CommentService commentService;
 
     @GetMapping("/{id}")
-    public ResponseEntity<CommentOutput> getOneComment(@PathVariable Integer id) {
+    public ResponseEntity<BaseResponse<CommentOutput>> getOneComment(@PathVariable Integer id,@PathVariable Integer id_post) {
         try {
-            CommentOutput commentOutput = commentService.getOneComment(id);
-            return ResponseEntity.ok(commentOutput);
+            CommentOutput commentOutput = commentService.getOneComment(id,id_post);
+            return ResponseEntity.ok(new BaseResponse<>(commentOutput));
         }catch (Exception e){
             if(e.getMessage().equalsIgnoreCase("Not Found")){
-                return ResponseEntity.notFound().build();
+                return new ResponseEntity(new BaseResponse(Boolean.FALSE,
+                        "No comment found"), HttpStatus.NOT_FOUND);
             }
-            return ResponseEntity.internalServerError().build();
+            return new ResponseEntity(new BaseResponse(Boolean.FALSE,
+                    "Internal Server Error"), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
+//    @GetMapping
+//    public ResponseEntity<BaseResponse<List<CommentOutput>>> getAllComment(){
+//        try {
+//            List<CommentOutput> commentOutputs = commentService.getAllComment();
+//            return ResponseEntity.ok(new BaseResponse<>(commentOutputs));
+//        }catch (Exception e){
+//            return new ResponseEntity(new BaseResponse(Boolean.FALSE,
+//                    "Internal Server Error"), HttpStatus.INTERNAL_SERVER_ERROR);
+//        }
+//    }
+
     @GetMapping
-    public ResponseEntity<List<CommentOutput>> getAllComment(){
-        List<CommentOutput> commentOutputs = commentService.getAllComment();
-        return ResponseEntity.ok(commentOutputs);
+    public ResponseEntity<List<CommentOutput>> getCommentByPost(@PathVariable Integer id_post){
+        try{
+            List<CommentOutput> commentOutputs = commentService.getCommentByPost(id_post);
+            System.out.println(id_post);
+            return ResponseEntity.ok(commentOutputs);
+        }catch (Exception e){
+            return new ResponseEntity(new BaseResponse(Boolean.FALSE,
+                    "Internal Server Error"), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @PostMapping
-    public ResponseEntity addOne(@RequestBody CommentInput commentInput){
+    public ResponseEntity<BaseResponse<CommentInput>> addOne(@RequestBody CommentInput commentInput,@PathVariable Integer id_post){
         if (commentInput.getContent() == null){
-            return ResponseEntity.noContent().build();
+            return new ResponseEntity(new BaseResponse(Boolean.FALSE,
+                    "Bad Request"), HttpStatus.BAD_REQUEST);
         }
         try {
+            commentInput.setPost_id(id_post);
             commentService.addOneComment(commentInput);
-            return ResponseEntity.ok(commentInput);
+            return ResponseEntity.ok(new BaseResponse<>(commentInput));
         }catch (Exception e){
             if(e.getMessage().equalsIgnoreCase("Duplicated")){
-                return new ResponseEntity(HttpStatus.CONFLICT);
+                return new ResponseEntity(new BaseResponse(Boolean.FALSE,
+                        "Duplicated"), HttpStatus.CONFLICT);
             }
-            return ResponseEntity.internalServerError().build();
+            return new ResponseEntity(new BaseResponse(Boolean.FALSE,
+                    "Internal Server Error"), HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity delete(@PathVariable Integer id){
+    public ResponseEntity<BaseResponse> delete(@PathVariable Integer id){
         try {
             commentService.deleteComment(id);
-            return ResponseEntity.noContent().build();
+            return new ResponseEntity(new BaseResponse(Boolean.TRUE,
+                    "Success deleting item"), HttpStatus.OK);
         }catch (Exception e){
             if(e.getMessage().equalsIgnoreCase("Not Found")){
-                return ResponseEntity.notFound().build();
+                return new ResponseEntity(new BaseResponse(Boolean.FALSE,
+                        "No comment found"), HttpStatus.BAD_REQUEST);
             }
-            return ResponseEntity.internalServerError().build();
+            return new ResponseEntity(new BaseResponse(Boolean.FALSE,
+                    "Internal Server Error"), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity update(@PathVariable Integer id,@RequestBody CommentInput commentInput){
+    public ResponseEntity<BaseResponse<CommentInput>> update(@PathVariable Integer id,@RequestBody CommentInput commentInput){
         try{
             if (commentInput.getContent() == null){
-                return ResponseEntity.noContent().build();
+                return new ResponseEntity(new BaseResponse(Boolean.FALSE,
+                        "Bad Request"), HttpStatus.BAD_REQUEST);
             }
-            return ResponseEntity.ok(commentService.updateComment(id, commentInput));
+            commentService.updateComment(id, commentInput);
+            return ResponseEntity.ok(new BaseResponse<>(commentInput));
         }catch (Exception e){
             if(e.getMessage().equalsIgnoreCase("Not Found")){
-                return ResponseEntity.notFound().build();
+                return new ResponseEntity(new BaseResponse(Boolean.FALSE,
+                        "No comment found"), HttpStatus.NOT_FOUND);
             }
-            return ResponseEntity.internalServerError().build();
+            return new ResponseEntity(new BaseResponse(Boolean.FALSE,
+                    "Internal Server Error"), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }

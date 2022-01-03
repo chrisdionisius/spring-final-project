@@ -1,5 +1,6 @@
 package com.dionisius.finalproject.postservice.impl.controller;
 
+import com.dionisius.finalproject.postservice.api.dto.BaseResponse;
 import com.dionisius.finalproject.postservice.api.dto.PostInput;
 import com.dionisius.finalproject.postservice.api.dto.PostOutput;
 import com.dionisius.finalproject.postservice.api.service.PostService;
@@ -19,68 +20,83 @@ public class PostController {
     private PostService postService;
 
     @GetMapping("/{id}")
-    public ResponseEntity<PostOutput> getOne(@PathVariable Integer id) {
+    public ResponseEntity<BaseResponse<PostOutput>> getOne(@PathVariable Integer id) {
         try {
-            PostOutput PostOutput = postService.getOne(id);
-            return ResponseEntity.ok(PostOutput);
+            PostOutput postOutput = postService.getOne(id);
+            return ResponseEntity.ok(new BaseResponse<>(postOutput));
         }catch (Exception e){
             if(e.getMessage().equalsIgnoreCase("Not Found")){
-                return ResponseEntity.notFound().build();
+                return new ResponseEntity(new BaseResponse(Boolean.FALSE,
+                        "No post found"), HttpStatus.NOT_FOUND);
             }
-            return ResponseEntity.internalServerError().build();
+            return new ResponseEntity(new BaseResponse(Boolean.FALSE,
+                    "Internal Server Error"), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @GetMapping
-    public ResponseEntity<List<PostOutput>> getAll(){
-        List<PostOutput> PostOutputs = postService.getAll();
-        return ResponseEntity.ok(PostOutputs);
+    public ResponseEntity<BaseResponse<List<PostOutput>>> getAll(){
+        try {
+            List<PostOutput> postOutputs = postService.getAll();
+            return ResponseEntity.ok(new BaseResponse<>(postOutputs));
+        }catch (Exception e){
+            return new ResponseEntity(new BaseResponse(Boolean.FALSE,
+                    "Internal Server Error"), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @PostMapping
-    public ResponseEntity addOne(@RequestBody PostInput PostInput){
-        if (PostInput.getTitle() == null){
-            return ResponseEntity.noContent().build();
+    public ResponseEntity<BaseResponse<PostInput>> addOne(@RequestBody PostInput postInput){
+        if (postInput.getTitle() == null){
+            return new ResponseEntity(new BaseResponse(Boolean.FALSE,
+                    "Bad Request"), HttpStatus.BAD_REQUEST);
         }
         try {
-            postService.addOne(PostInput);
-            return ResponseEntity.ok(PostInput);
+            postService.addOne(postInput);
+            return ResponseEntity.ok(new BaseResponse<>(postInput));
         }catch (Exception e){
             if(e.getMessage().equalsIgnoreCase("Duplicated")){
-                return new ResponseEntity(HttpStatus.CONFLICT);
+                return new ResponseEntity(new BaseResponse(Boolean.FALSE,
+                        "Duplicated"), HttpStatus.CONFLICT);
             }
-            return ResponseEntity.internalServerError().build();
+            return new ResponseEntity(new BaseResponse(Boolean.FALSE,
+                    "Internal Server Error"), HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity delete(@PathVariable Integer id){
+    public ResponseEntity<BaseResponse> delete(@PathVariable Integer id){
         try {
             postService.delete(id);
-            return ResponseEntity.noContent().build();
+            return new ResponseEntity(new BaseResponse(Boolean.TRUE,
+                    "Success deleting item"), HttpStatus.OK);
         }catch (Exception e){
             if(e.getMessage().equalsIgnoreCase("Not Found")){
-                return ResponseEntity.notFound().build();
+                return new ResponseEntity(new BaseResponse(Boolean.FALSE,
+                        "No post found"), HttpStatus.BAD_REQUEST);
             }
-            return ResponseEntity.internalServerError().build();
+            return new ResponseEntity(new BaseResponse(Boolean.FALSE,
+                    "Internal Server Error"), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity update(@PathVariable Integer id,@RequestBody PostInput PostInput){
+    public ResponseEntity<BaseResponse<PostInput>> update(@PathVariable Integer id,@RequestBody PostInput postInput){
         try{
-            if (PostInput.getTitle() == null){
-                return ResponseEntity.noContent().build();
+            if (postInput.getTitle() == null){
+                return new ResponseEntity(new BaseResponse(Boolean.FALSE,
+                        "Bad Request"), HttpStatus.BAD_REQUEST);
             }
-            return ResponseEntity.ok(postService.update(id, PostInput));
+            postService.update(id, postInput);
+            return ResponseEntity.ok(new BaseResponse<>(postInput));
         }catch (Exception e){
             if(e.getMessage().equalsIgnoreCase("Not Found")){
-                return ResponseEntity.notFound().build();
+                return new ResponseEntity(new BaseResponse(Boolean.FALSE,
+                        "No post found"), HttpStatus.NOT_FOUND);
             }
-            return ResponseEntity.internalServerError().build();
+            return new ResponseEntity(new BaseResponse(Boolean.FALSE,
+                    "Internal Server Error"), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
-
 }

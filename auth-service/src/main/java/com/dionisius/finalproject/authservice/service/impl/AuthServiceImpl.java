@@ -34,7 +34,11 @@ public class AuthServiceImpl implements AuthService {
         user.setPassword(passwordEncoder.encode(req.getPassword()));
         user.setEmail(req.email);
         user.setPhoto(req.photo);
-        return userRepository.save(user);
+        try {
+            return userRepository.save(user);
+        }catch (Exception e){
+            throw new RuntimeException("Duplicated");
+        }
     }
 
     @Override
