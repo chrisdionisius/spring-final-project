@@ -105,6 +105,7 @@ public class PostServiceImpl implements PostService {
             throw new RuntimeException("Not Found");
         }
         postUpdated.get().setTitle(postInput.getTitle());
+        postUpdated.get().setContent(postInput.getContent());
         return  postRepository.save(postUpdated.get());
     }
 }

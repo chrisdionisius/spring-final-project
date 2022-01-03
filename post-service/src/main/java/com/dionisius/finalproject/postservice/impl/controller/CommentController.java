@@ -1,8 +1,10 @@
 package com.dionisius.finalproject.postservice.impl.controller;
 
+import com.dionisius.finalproject.postservice.api.dto.CommentInput;
+import com.dionisius.finalproject.postservice.api.dto.CommentOutput;
 import com.dionisius.finalproject.postservice.api.dto.PostInput;
 import com.dionisius.finalproject.postservice.api.dto.PostOutput;
-import com.dionisius.finalproject.postservice.api.service.PostService;
+import com.dionisius.finalproject.postservice.api.service.CommentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
@@ -12,17 +14,17 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/post")
-public class PostController {
+@RequestMapping("/comment")
+public class CommentController {
     @Autowired
-    @Qualifier("postServiceImpl")
-    private PostService postService;
+    @Qualifier("commentServiceImpl")
+    private CommentService commentService;
 
     @GetMapping("/{id}")
-    public ResponseEntity<PostOutput> getOne(@PathVariable Integer id) {
+    public ResponseEntity<CommentOutput> getOneComment(@PathVariable Integer id) {
         try {
-            PostOutput PostOutput = postService.getOne(id);
-            return ResponseEntity.ok(PostOutput);
+            CommentOutput commentOutput = commentService.getOneComment(id);
+            return ResponseEntity.ok(commentOutput);
         }catch (Exception e){
             if(e.getMessage().equalsIgnoreCase("Not Found")){
                 return ResponseEntity.notFound().build();
@@ -32,19 +34,19 @@ public class PostController {
     }
 
     @GetMapping
-    public ResponseEntity<List<PostOutput>> getAll(){
-        List<PostOutput> PostOutputs = postService.getAll();
-        return ResponseEntity.ok(PostOutputs);
+    public ResponseEntity<List<CommentOutput>> getAllComment(){
+        List<CommentOutput> commentOutputs = commentService.getAllComment();
+        return ResponseEntity.ok(commentOutputs);
     }
 
     @PostMapping
-    public ResponseEntity addOne(@RequestBody PostInput PostInput){
-        if (PostInput.getTitle() == null){
+    public ResponseEntity addOne(@RequestBody CommentInput commentInput){
+        if (commentInput.getContent() == null){
             return ResponseEntity.noContent().build();
         }
         try {
-            postService.addOne(PostInput);
-            return ResponseEntity.ok(PostInput);
+            commentService.addOneComment(commentInput);
+            return ResponseEntity.ok(commentInput);
         }catch (Exception e){
             if(e.getMessage().equalsIgnoreCase("Duplicated")){
                 return new ResponseEntity(HttpStatus.CONFLICT);
@@ -57,7 +59,7 @@ public class PostController {
     @DeleteMapping("/{id}")
     public ResponseEntity delete(@PathVariable Integer id){
         try {
-            postService.delete(id);
+            commentService.deleteComment(id);
             return ResponseEntity.noContent().build();
         }catch (Exception e){
             if(e.getMessage().equalsIgnoreCase("Not Found")){
@@ -68,12 +70,12 @@ public class PostController {
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity update(@PathVariable Integer id,@RequestBody PostInput PostInput){
+    public ResponseEntity update(@PathVariable Integer id,@RequestBody CommentInput commentInput){
         try{
-            if (PostInput.getTitle() == null){
+            if (commentInput.getContent() == null){
                 return ResponseEntity.noContent().build();
             }
-            return ResponseEntity.ok(postService.update(id, PostInput));
+            return ResponseEntity.ok(commentService.updateComment(id, commentInput));
         }catch (Exception e){
             if(e.getMessage().equalsIgnoreCase("Not Found")){
                 return ResponseEntity.notFound().build();
@@ -81,6 +83,4 @@ public class PostController {
             return ResponseEntity.internalServerError().build();
         }
     }
-
-
 }
