@@ -1,8 +1,10 @@
 package com.dionisius.finalproject.logservice.controller;
 
 import com.dionisius.finalproject.logservice.model.Log;
+import com.dionisius.finalproject.logservice.payload.BaseResponse;
 import com.dionisius.finalproject.logservice.service.LogService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,8 +26,13 @@ public class LogController {
         return ResponseEntity.ok(logCreated);
     }
     @GetMapping
-    public ResponseEntity<List<Log>> getList(){
-        List<Log> logs = logService.listLog();
-        return ResponseEntity.ok(logs);
+    public ResponseEntity<BaseResponse<List<Log>>> getList(){
+        try {
+            List<Log> logs = logService.listLog();
+            return ResponseEntity.ok(new BaseResponse<>(logs));
+        }catch (Exception e){
+            return new ResponseEntity(new BaseResponse(Boolean.FALSE,
+                    "Internal Server Error"), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }

@@ -3,6 +3,7 @@ package com.dionisius.finalproject.postservice.impl.controller;
 import com.dionisius.finalproject.postservice.api.dto.BaseResponse;
 import com.dionisius.finalproject.postservice.api.dto.PostInput;
 import com.dionisius.finalproject.postservice.api.dto.PostOutput;
+import com.dionisius.finalproject.postservice.api.dto.SinglePostOutput;
 import com.dionisius.finalproject.postservice.api.service.PostService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -20,15 +21,26 @@ public class PostController {
     private PostService postService;
 
     @GetMapping("/{id}")
-    public ResponseEntity<BaseResponse<PostOutput>> getOne(@PathVariable Integer id) {
+    public ResponseEntity<BaseResponse<SinglePostOutput>> getOne(@PathVariable Integer id) {
         try {
-            PostOutput postOutput = postService.getOne(id);
+            SinglePostOutput postOutput = postService.getOne(id);
             return ResponseEntity.ok(new BaseResponse<>(postOutput));
         }catch (Exception e){
             if(e.getMessage().equalsIgnoreCase("Not Found")){
                 return new ResponseEntity(new BaseResponse(Boolean.FALSE,
                         "No post found"), HttpStatus.NOT_FOUND);
             }
+            return new ResponseEntity(new BaseResponse(Boolean.FALSE,
+                    "Internal Server Error"), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/postByCategory/{id}")
+    public ResponseEntity<BaseResponse<List<PostOutput>>> getByCategory(@PathVariable Integer id){
+        try {
+            List<PostOutput> postOutputs = postService.getByCategory(id);
+            return ResponseEntity.ok(new BaseResponse<>(postOutputs));
+        }catch (Exception e){
             return new ResponseEntity(new BaseResponse(Boolean.FALSE,
                     "Internal Server Error"), HttpStatus.INTERNAL_SERVER_ERROR);
         }
