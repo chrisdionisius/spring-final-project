@@ -3,11 +3,16 @@ package com.dionisius.finalproject.postservice.impl.service;
 import com.dionisius.finalproject.postservice.api.dto.PostInput;
 import com.dionisius.finalproject.postservice.api.dto.PostOutput;
 import com.dionisius.finalproject.postservice.api.service.CommentService;
+import com.dionisius.finalproject.postservice.api.service.KafkaPost;
 import com.dionisius.finalproject.postservice.api.service.PostService;
 import com.dionisius.finalproject.postservice.data.model.Post;
 import com.dionisius.finalproject.postservice.impl.repository.PostRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.configurationprocessor.json.JSONException;
+import org.springframework.boot.configurationprocessor.json.JSONObject;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -17,13 +22,15 @@ import java.util.Optional;
 
 @Service
 public class PostServiceImpl implements PostService {
-
     @Autowired
     private PostRepository postRepository;
 
     @Autowired
     @Qualifier("commentServiceImpl")
     private CommentService commentService;
+
+    @Autowired
+    private KafkaPost kafkaPost;
 
     @Override
     public PostOutput getOne(Integer id) {
@@ -101,9 +108,18 @@ public class PostServiceImpl implements PostService {
     @Override
     public void delete(Integer id) {
         Optional<Post> post = postRepository.findById(id);
-        if (post.isEmpty()){
+        if (post.isEmpty()) {
             throw new RuntimeException("Not Found");
         }
+        String oldPost = null;
+        try {
+            oldPost = new JSONObject()
+                    .put("data", post)
+                    .toString();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        kafkaPost.sendLog(oldPost);
         postRepository.deleteById(id);
     }
 
