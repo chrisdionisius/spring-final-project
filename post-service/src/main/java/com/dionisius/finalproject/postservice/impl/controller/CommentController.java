@@ -32,23 +32,12 @@ public class CommentController {
         }
     }
 
-//    @GetMapping
-//    public ResponseEntity<BaseResponse<List<CommentOutput>>> getAllComment(){
-//        try {
-//            List<CommentOutput> commentOutputs = commentService.getAllComment();
-//            return ResponseEntity.ok(new BaseResponse<>(commentOutputs));
-//        }catch (Exception e){
-//            return new ResponseEntity(new BaseResponse(Boolean.FALSE,
-//                    "Internal Server Error"), HttpStatus.INTERNAL_SERVER_ERROR);
-//        }
-//    }
-
     @GetMapping
-    public ResponseEntity<List<CommentOutput>> getCommentByPost(@PathVariable Integer id_post){
+    public ResponseEntity<BaseResponse<List<CommentOutput>>> getCommentByPost(@PathVariable Integer id_post){
         try{
             List<CommentOutput> commentOutputs = commentService.getCommentByPost(id_post);
             System.out.println(id_post);
-            return ResponseEntity.ok(commentOutputs);
+            return ResponseEntity.ok(new BaseResponse<>(commentOutputs));
         }catch (Exception e){
             return new ResponseEntity(new BaseResponse(Boolean.FALSE,
                     "Internal Server Error"), HttpStatus.INTERNAL_SERVER_ERROR);

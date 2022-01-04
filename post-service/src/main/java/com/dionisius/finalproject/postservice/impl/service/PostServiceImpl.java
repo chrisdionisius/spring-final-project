@@ -1,13 +1,19 @@
 package com.dionisius.finalproject.postservice.impl.service;
 
+import com.dionisius.finalproject.postservice.api.dto.CategoryOutput;
 import com.dionisius.finalproject.postservice.api.dto.PostInput;
 import com.dionisius.finalproject.postservice.api.dto.PostOutput;
+import com.dionisius.finalproject.postservice.api.dto.SinglePostOutput;
 import com.dionisius.finalproject.postservice.api.service.CommentService;
+import com.dionisius.finalproject.postservice.api.service.KafkaPost;
 import com.dionisius.finalproject.postservice.api.service.PostService;
 import com.dionisius.finalproject.postservice.data.model.Post;
 import com.dionisius.finalproject.postservice.impl.repository.PostRepository;
+import com.google.gson.Gson;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.configurationprocessor.json.JSONException;
+import org.springframework.boot.configurationprocessor.json.JSONObject;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -17,7 +23,6 @@ import java.util.Optional;
 
 @Service
 public class PostServiceImpl implements PostService {
-
     @Autowired
     private PostRepository postRepository;
 
@@ -25,23 +30,27 @@ public class PostServiceImpl implements PostService {
     @Qualifier("commentServiceImpl")
     private CommentService commentService;
 
+    @Autowired
+    private KafkaPost kafkaPost;
+
     @Override
-    public PostOutput getOne(Integer id) {
+    public SinglePostOutput getOne(Integer id) {
+
         Optional<Post> post = postRepository.findById(id);
 
         if (post.isEmpty()){
             throw new RuntimeException("Not Found");
         }
 
-        return PostOutput.builder()
+        return SinglePostOutput.builder()
                 .id(post.get().getId())
                 .user_id(post.get().getUser_id())
-                .category_id(checkCategory(post.get().getCategory_id()))
+                .category_id(post.get().getCategory_id())
                 .title(post.get().getTitle())
                 .content(post.get().getContent())
                 .comments(commentService.getCommentByPost(id))
                 .createdAt(post.get().getCreatedAt())
-                .createdAt(post.get().getUpdatedAt())
+                .updatedAt(post.get().getUpdatedAt())
                 .build();
     }
 
@@ -49,15 +58,16 @@ public class PostServiceImpl implements PostService {
     public List<PostOutput> getAll() {
         Iterable<Post> posts = postRepository.findAll();
         List<PostOutput> postOutputs = new ArrayList<>();
+
         for (Post post : posts){
             PostOutput postOutput = PostOutput.builder()
                     .id(post.getId())
                     .user_id(post.getUser_id())
-                    .category_id(checkCategory(post.getCategory_id()))
+                    .category_id(post.getCategory_id())
                     .title(post.getTitle())
                     .content(post.getContent())
                     .createdAt(post.getCreatedAt())
-                    .createdAt(post.getUpdatedAt())
+                    .updatedAt(post.getUpdatedAt())
                     .build();
             postOutputs.add(postOutput);
         }
@@ -69,16 +79,18 @@ public class PostServiceImpl implements PostService {
         Iterable<Post> posts = postRepository.findAll();
         List<PostOutput> postOutputs = new ArrayList<>();
         for (Post post : posts){
-            PostOutput postOutput = PostOutput.builder()
-                    .id(post.getId())
-                    .user_id(post.getUser_id())
-                    .category_id(checkCategory(post.getCategory_id()))
-                    .title(post.getTitle())
-                    .content(post.getContent())
-                    .createdAt(post.getCreatedAt())
-                    .createdAt(post.getUpdatedAt())
-                    .build();
-            postOutputs.add(postOutput);
+            if (post.getCategory_id()==category_id){
+                PostOutput postOutput = PostOutput.builder()
+                        .id(post.getId())
+                        .user_id(post.getUser_id())
+                        .category_id(post.getCategory_id())
+                        .title(post.getTitle())
+                        .content(post.getContent())
+                        .updatedAt(post.getCreatedAt())
+                        .createdAt(post.getUpdatedAt())
+                        .build();
+                postOutputs.add(postOutput);
+            }
         }
         return postOutputs;
     }
@@ -101,9 +113,18 @@ public class PostServiceImpl implements PostService {
     @Override
     public void delete(Integer id) {
         Optional<Post> post = postRepository.findById(id);
-        if (post.isEmpty()){
+        if (post.isEmpty()) {
             throw new RuntimeException("Not Found");
         }
+        String oldPost = null;
+        try {
+            oldPost = new JSONObject()
+                    .put("data", post)
+                    .toString();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        kafkaPost.sendLog(oldPost);
         postRepository.deleteById(id);
     }
 
@@ -118,14 +139,21 @@ public class PostServiceImpl implements PostService {
         return  postRepository.save(postUpdated.get());
     }
 
-    private String checkCategory(Integer id){
-        String result = null;
+    private CategoryOutput checkCategory(Integer id){
+        String result;
         try{
             final String uri = "http://192.168.56.1:8701/category/"+id;
             RestTemplate restTemplate = new RestTemplate();
-            return result = restTemplate.getForObject(uri, String.class);
+            result = restTemplate.getForObject(uri, String.class);
+
+            Gson gsonCategory= new Gson();
+            CategoryOutput categoryOutput = gsonCategory.fromJson(result, CategoryOutput.class);
+
+            System.out.println(categoryOutput);
+            System.out.println(result);
+            return categoryOutput;
         }catch (Exception e){
-           return result = null;
+           return null;
         }
     }
 }
