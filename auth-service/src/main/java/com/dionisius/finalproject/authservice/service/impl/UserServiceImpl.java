@@ -9,6 +9,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
@@ -37,6 +40,29 @@ public class UserServiceImpl implements UserService {
         userInfo.setRole(user.getRole());
         userInfo.set_registered(user.is_registered());
         return userInfo;
+    }
+
+    @Override
+    public List<UserInfo> getAllUserInfo(String username) {
+        if (getUserInfo(username).role.equalsIgnoreCase("admin")){
+            Iterable<User> users = userRepository.findAll();
+            List<UserInfo> usersInfo = new ArrayList<>();
+            for (User user : users){
+                UserInfo userInfo = UserInfo.builder()
+                        .id(user.getId())
+                        .username(user.getUsername())
+                        .email(user.getEmail())
+                        .photo(user.getPhoto())
+                        .role(user.getRole())
+                        .is_registered(user.is_registered())
+                        .build();
+                usersInfo.add(userInfo);
+            }
+            return usersInfo;
+        }else {
+            throw new RuntimeException("Unauthorized");
+        }
+
     }
 
 }

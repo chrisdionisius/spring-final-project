@@ -1,45 +1,54 @@
-package com.dionisius.finalproject.categoryservice.impl.controller;
+package com.dionisius.finalproject.postservice.impl.controller;
 
-import com.dionisius.finalproject.categoryservice.api.dto.BaseResponse;
-import com.dionisius.finalproject.categoryservice.api.dto.input.CategoryInput;
-import com.dionisius.finalproject.categoryservice.api.dto.output.CategoryOutput;
-import com.dionisius.finalproject.categoryservice.api.service.CategoryService;
+import com.dionisius.finalproject.postservice.api.dto.*;
+import com.dionisius.finalproject.postservice.api.service.CommentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
 import java.util.List;
 
 @RestController
-@RequestMapping("/category")
-public class CategoryController {
+@RequestMapping("/post/{id_post}/comment")
+public class CommentController {
     @Autowired
-    @Qualifier("categoryServiceImpl")
-    private CategoryService categoryService;
+    @Qualifier("commentServiceImpl")
+    private CommentService commentService;
 
     @GetMapping("/{id}")
-    public ResponseEntity<BaseResponse<CategoryOutput>> getOne(@PathVariable Integer id) {
+    public ResponseEntity<BaseResponse<CommentOutput>> getOneComment(@PathVariable Integer id,@PathVariable Integer id_post) {
         try {
-            CategoryOutput categoryOutput = categoryService.getOne(id);
-            return ResponseEntity.ok(new BaseResponse<>(categoryOutput));
+            CommentOutput commentOutput = commentService.getOneComment(id,id_post);
+            return ResponseEntity.ok(new BaseResponse<>(commentOutput));
         }catch (Exception e){
             if(e.getMessage().equalsIgnoreCase("Not Found")){
                 return new ResponseEntity(new BaseResponse(Boolean.FALSE,
-                        "No post found"), HttpStatus.NOT_FOUND);
+                        "No comment found"), HttpStatus.NOT_FOUND);
             }
             return new ResponseEntity(new BaseResponse(Boolean.FALSE,
                     "Internal Server Error"), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
+//    @GetMapping
+//    public ResponseEntity<BaseResponse<List<CommentOutput>>> getAllComment(){
+//        try {
+//            List<CommentOutput> commentOutputs = commentService.getAllComment();
+//            return ResponseEntity.ok(new BaseResponse<>(commentOutputs));
+//        }catch (Exception e){
+//            return new ResponseEntity(new BaseResponse(Boolean.FALSE,
+//                    "Internal Server Error"), HttpStatus.INTERNAL_SERVER_ERROR);
+//        }
+//    }
+
     @GetMapping
-    public ResponseEntity<BaseResponse<List<CategoryOutput>>> getAll(){
-        try {
-            List<CategoryOutput> categoryOutputs = categoryService.getAll();
-            return ResponseEntity.ok(new BaseResponse<>(categoryOutputs));
+    public ResponseEntity<List<CommentOutput>> getCommentByPost(@PathVariable Integer id_post){
+        try{
+            List<CommentOutput> commentOutputs = commentService.getCommentByPost(id_post);
+            System.out.println(id_post);
+            return ResponseEntity.ok(commentOutputs);
         }catch (Exception e){
             return new ResponseEntity(new BaseResponse(Boolean.FALSE,
                     "Internal Server Error"), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -47,14 +56,15 @@ public class CategoryController {
     }
 
     @PostMapping
-    public ResponseEntity<BaseResponse<CategoryInput>> addOne(@RequestBody CategoryInput categoryInput){
-        if (categoryInput.getName() == null){
+    public ResponseEntity<BaseResponse<CommentInput>> addOne(@RequestBody CommentInput commentInput,@PathVariable Integer id_post){
+        if (commentInput.getContent() == null){
             return new ResponseEntity(new BaseResponse(Boolean.FALSE,
                     "Bad Request"), HttpStatus.BAD_REQUEST);
         }
         try {
-            categoryService.addOne(categoryInput);
-            return ResponseEntity.ok(new BaseResponse<>(categoryInput));
+            commentInput.setPost_id(id_post);
+            commentService.addOneComment(commentInput);
+            return ResponseEntity.ok(new BaseResponse<>(commentInput));
         }catch (Exception e){
             if(e.getMessage().equalsIgnoreCase("Duplicated")){
                 return new ResponseEntity(new BaseResponse(Boolean.FALSE,
@@ -63,18 +73,19 @@ public class CategoryController {
             return new ResponseEntity(new BaseResponse(Boolean.FALSE,
                     "Internal Server Error"), HttpStatus.INTERNAL_SERVER_ERROR);
         }
+
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<BaseResponse> delete(@PathVariable Integer id){
         try {
-            categoryService.delete(id);
+            commentService.deleteComment(id);
             return new ResponseEntity(new BaseResponse(Boolean.TRUE,
                     "Success deleting item"), HttpStatus.OK);
         }catch (Exception e){
             if(e.getMessage().equalsIgnoreCase("Not Found")){
                 return new ResponseEntity(new BaseResponse(Boolean.FALSE,
-                        "No post found"), HttpStatus.NOT_FOUND);
+                        "No comment found"), HttpStatus.BAD_REQUEST);
             }
             return new ResponseEntity(new BaseResponse(Boolean.FALSE,
                     "Internal Server Error"), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -82,21 +93,18 @@ public class CategoryController {
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<BaseResponse<CategoryInput>> update(@PathVariable Integer id,@RequestBody CategoryInput categoryInput){
+    public ResponseEntity<BaseResponse<CommentInput>> update(@PathVariable Integer id,@RequestBody CommentInput commentInput){
         try{
-            if (categoryInput.getName() == null){
+            if (commentInput.getContent() == null){
                 return new ResponseEntity(new BaseResponse(Boolean.FALSE,
                         "Bad Request"), HttpStatus.BAD_REQUEST);
             }
-            categoryService.update(id, categoryInput);
-            return ResponseEntity.ok(new BaseResponse<>(categoryInput));
+            commentService.updateComment(id, commentInput);
+            return ResponseEntity.ok(new BaseResponse<>(commentInput));
         }catch (Exception e){
             if(e.getMessage().equalsIgnoreCase("Not Found")){
                 return new ResponseEntity(new BaseResponse(Boolean.FALSE,
-                        "No post found"), HttpStatus.NOT_FOUND);
-            }else if (e.getMessage().equalsIgnoreCase("Duplicated")){
-                return new ResponseEntity(new BaseResponse(Boolean.FALSE,
-                        "Duplicated row"), HttpStatus.CONFLICT);
+                        "No comment found"), HttpStatus.NOT_FOUND);
             }
             return new ResponseEntity(new BaseResponse(Boolean.FALSE,
                     "Internal Server Error"), HttpStatus.INTERNAL_SERVER_ERROR);
