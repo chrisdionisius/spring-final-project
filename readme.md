@@ -23,3 +23,25 @@
 ## ERD
 
 ![screenshot](Diagrams/ERD.png)
+
+## Technologies
+
+- Spring Boot Framework (2.6.2)
+- PostgreSQL (14.1)
+- Apache Kafka (2.13)
+- JSON Web Token (0.11.2)
+
+## Depedencies
+
+- Lombok
+- Discovery
+- Spring Boot Actuator
+- Spring Web
+- Spring Cloud Config
+- Spring Cloud Discovery
+- Spring Boot DevTools
+- PostgreSQL Driver
+- Spring Configuration Processor
+- Spring for Apache Kafka
+- Spring Security
+- JSON Web Token Support For The JVM
